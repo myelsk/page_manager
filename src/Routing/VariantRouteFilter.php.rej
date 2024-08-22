@@ -1,0 +1,21 @@
+--- src/Routing/VariantRouteFilter.php
++++ src/Routing/VariantRouteFilter.php
+@@ -84,12 +84,18 @@ class VariantRouteFilter implements FilterInterface {
+     // Sort routes by variant weight.
+     $routes = $this->sortRoutes($routes);
+ 
++    $requested_format = $request->getRequestFormat();
+     $variant_route_name = $this->getVariantRouteName($routes, $request);
+     foreach ($routes as $name => $route) {
+       if (!$route->hasDefault('page_manager_page_variant')) {
+         continue;
+       }
+ 
++      $acceptable_response_formats = $route->hasRequirement('_format') ? explode('|', $route->getRequirement('_format')) : [];
++      if (!empty($requested_format) && $requested_format !== "html" && !in_array($requested_format, $acceptable_response_formats)) {
++        unset($routes[$name]);
++      }
++
+       // If this page manager route isn't the one selected, remove it.
+       if ($variant_route_name !== $name) {
+         unset($routes[$name]);
